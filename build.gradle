@@ -1,0 +1,48 @@
+import org.apache.pdfbox.pdfparser.PDFParser
+import org.apache.pdfbox.util.PDFTextStripper
+import org.apache.pdfbox.pdmodel.PDDocument
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.0'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}
+
+
+/*
+	Sample code found at:
+	1/ http://stackoverflow.com/questions/18098400/how-to-get-raw-text-from-pdf-file-using-java
+	2/ http://thottingal.in/blog/2009/06/24/pdfbox-extract-text-from-pdf/
+*/
+task printText << {
+    def fileName = "test.pdf"
+    def file = new File(fileName)
+    
+    def cosDoc = null
+    def pdDoc = null
+    
+    try {
+        def parser = new PDFParser(new FileInputStream(file)) 
+        parser.parse()
+        
+        cosDoc = parser.getDocument();
+        def pdfStripper = new PDFTextStripper();
+        pdDoc = new PDDocument(cosDoc);
+        
+        def parsedText = pdfStripper.getText(pdDoc);
+        System.out.println(parsedText.replaceAll("[^A-Za-z0-9. ]+", ""));
+    } catch (Exception ex) {
+    	ex.printStackTrace()
+    } finally {
+    	if (cosDoc != null)    cosDoc.close()
+    	if (pdDoc  != null)    pdDoc.close()
+    }
+    
+}
